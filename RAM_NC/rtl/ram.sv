@@ -1,4 +1,4 @@
-// read_first mode
+// -- no_change mode
 module RAM (
     input  logic        clk,
     input  logic        we,
@@ -12,8 +12,9 @@ module RAM (
     always_ff @(posedge clk) begin
         if (we) begin
             mem[addr] <= wdata;
+        end else begin
+            rdata <= mem[addr];
         end
-        rdata <= mem[addr];
     end
 
 endmodule
