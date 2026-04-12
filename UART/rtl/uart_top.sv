@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 module uart_top #(
-    parameter BAUDRATE = 9600,
+    parameter BAUDRATE = 115200,
     parameter DEPTH    = 4,
     parameter D_WIDTH  = 8
 ) (

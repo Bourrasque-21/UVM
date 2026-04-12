@@ -107,6 +107,7 @@ module uart_rx (
                     end
                 end
             end
+            default: n_state = IDLE;
         endcase
     end
 

@@ -115,6 +115,7 @@ module uart_tx (
                     end
                 end
             end
+            default: n_state = IDLE;
         endcase
     end
 endmodule
