@@ -45,12 +45,12 @@ module tb_uart ();
     // test 4 : uart_baud_plus2_test    test 5 : uart_baud_minus2_test      test 6 : uart_baud_plus4_test       test 7 : uart_baud_minus4_test
     initial begin
         uvm_config_db#(virtual uart_if)::set(null, "*", "vif", vif);
-        run_test("uart_baud_minus4_test");
+        run_test();
     end
 
-    // initial begin
-    // $fsdbDumpfile("novas.fsdb");
-    // $fsdbDumpvars(0, tb_uart, "+all");
-    // end
+    initial begin
+    $fsdbDumpfile("novas.fsdb");
+    $fsdbDumpvars(0, tb_uart, "+all");
+    end
 
 endmodule
