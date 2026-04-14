@@ -33,16 +33,18 @@ module uart_rx (
             bit_cnt_reg    <= 3'd0;
             done_reg       <= 1'b0;
             data_buf_reg   <= 8'd0;
+            // 2FF Synchronizer
             rx_sync1       <= 1'b1;
             rx_sync2       <= 1'b1;
         end else begin
-            rx_sync1       <= rx;
-            rx_sync2       <= rx_sync1;
             c_state        <= n_state;
             b_tick_cnt_reg <= b_tick_cnt_next;
             bit_cnt_reg    <= bit_cnt_next;
             done_reg       <= done_next;
             data_buf_reg   <= data_buf_next;
+            
+            rx_sync1       <= rx;
+            rx_sync2       <= rx_sync1;
         end
     end
 
