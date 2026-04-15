@@ -11,6 +11,9 @@ module tb_spi_master ();
     logic       done;
     logic       busy;
 
+    logic       cpol;
+    logic       cpha;
+
     logic       sclk;
     logic       mosi;
     logic       miso;
@@ -22,26 +25,44 @@ module tb_spi_master ();
 
     assign miso = mosi;
 
-    initial begin
-        clk = 0;
-        rst = 1;
-        start = 0;
-        clk_div = 0;
-        repeat (3) @(posedge clk);
-        rst = 0;
+    task spi_set_mode(logic [1:0] mode);
+        {cpol, cpha} = mode;
+        @(posedge clk);
+    endtask  //spi_set_mode
 
-        @(posedge clk);
-        clk_div = 4;
-        // miso = 1'b0;
-        @(posedge clk);
-        tx_data = 8'haa;
+    task spi_send_data(logic [7:0] data);
+        tx_data = data;
         start   = 1'b1;
         @(posedge clk);
         start = 1'b0;
         @(posedge clk);
         wait (done);
         @(posedge clk);
+    endtask  //spi_send
 
+    initial begin
+        clk = 0;
+        rst = 1;
+        repeat (3) @(posedge clk);
+        rst = 0;
+        @(posedge clk);
+        clk_div = 4;  // sclk = 10MHz : (100MHz / (10MHz * 2)) - 1
+        //miso = 1'b0;
+        @(posedge clk);
+
+        spi_set_mode(0);
+        spi_send_data(8'haa);
+
+        spi_set_mode(1);
+        spi_send_data(8'haa);
+
+        spi_set_mode(2);
+        spi_send_data(8'haa);
+
+        spi_set_mode(3);
+        spi_send_data(8'haa);
+
+        @(posedge clk);
         #20;
         $stop;
     end

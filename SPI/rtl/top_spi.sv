@@ -25,6 +25,8 @@ module top_spi (
         .busy   (),
         .done   (),
 
+        .cpol(1'b0),
+        .cpha(1'b0),
         // SPI pins
         .sclk(w_sclk),
         .mosi(w_mosi),
