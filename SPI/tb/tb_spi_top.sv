@@ -29,6 +29,7 @@ module tb_spi_top ();
     initial begin
         clk = 0;
         rst = 1;
+        sw  = 8'h0;
         repeat (3) @(posedge clk);
         rst = 0;
         @(posedge clk);

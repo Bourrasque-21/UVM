@@ -23,7 +23,7 @@ module top_spi (
 
         .rx_data(),
         .busy   (),
-        .done   (),
+        .done   (v_led),
 
         .cpol(1'b0),
         .cpha(1'b0),
@@ -39,7 +39,7 @@ module top_spi (
         .rst(rst),
 
         .rx_data(led),
-        .valid  (v_led),
+        .valid  (),
 
         .sclk(w_sclk),
         .mosi(w_mosi),
