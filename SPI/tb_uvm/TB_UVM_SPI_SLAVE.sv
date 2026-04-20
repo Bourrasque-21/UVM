@@ -10,10 +10,10 @@ interface spi_slave_if (
     logic [7:0] rx_data;
     logic       valid;
 
-    logic sclk;
-    logic mosi;
-    logic miso;
-    logic cs_n;
+    logic       sclk;
+    logic       mosi;
+    logic       miso;
+    logic       cs_n;
 
     task automatic init_signals();
         tx_data = 8'h00;
@@ -31,9 +31,7 @@ class spi_slave_seq_item extends uvm_sequence_item;
     bit [7:0] captured_miso;
     bit [7:0] rx_data;
 
-    constraint half_period_c {
-        half_period_cycles inside {3, 4, 5, 8, 10};
-    }
+    constraint half_period_c {half_period_cycles inside {3, 4, 5, 8, 10};}
 
     `uvm_object_utils_begin(spi_slave_seq_item)
         `uvm_field_int(tx_data, UVM_DEFAULT)
@@ -51,7 +49,8 @@ endclass
 class spi_slave_sequencer extends uvm_sequencer #(spi_slave_seq_item);
     `uvm_component_utils(spi_slave_sequencer)
 
-    function new(string name = "spi_slave_sequencer", uvm_component parent = null);
+    function new(string name = "spi_slave_sequencer",
+                 uvm_component parent = null);
         super.new(name, parent);
     endfunction
 endclass
@@ -68,7 +67,9 @@ class spi_slave_driver extends uvm_driver #(spi_slave_seq_item);
 
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
-        if (!uvm_config_db#(virtual spi_slave_if)::get(this, "", "vif", vif)) begin
+        if (!uvm_config_db#(virtual spi_slave_if)::get(
+                this, "", "vif", vif
+            )) begin
             `uvm_fatal("SPI_SLV_DRV",
                        "virtual interface was not provided to spi_slave_driver")
         end
@@ -136,18 +137,17 @@ class spi_slave_driver extends uvm_driver #(spi_slave_seq_item);
         repeat (2) @(posedge vif.clk);
 
         if (!saw_valid) begin
-            `uvm_fatal("SPI_SLV_DRV_TIMEOUT",
-                       $sformatf(
-                           "Timed out waiting for valid. tx=0x%02h half_period=%0d",
-                           tr.tx_data,
-                           tr.half_period_cycles))
+            `uvm_fatal(
+                "SPI_SLV_DRV_TIMEOUT",
+                $sformatf(
+                    "Timed out waiting for valid. tx=0x%02h half_period=%0d",
+                    tr.tx_data, tr.half_period_cycles))
         end
 
-        `uvm_info("SPI_SLV_DRV", $sformatf(
-                  "Drove SPI slave transfer tx=0x%02h half_period=%0d",
-                  tr.tx_data,
-                  tr.half_period_cycles
-                  ), UVM_MEDIUM)
+        `uvm_info("SPI_SLV_DRV",
+                  $sformatf(
+                      "Drove SPI slave transfer tx=0x%02h half_period=%0d",
+                      tr.tx_data, tr.half_period_cycles), UVM_MEDIUM)
     endtask
 endclass
 
@@ -158,16 +158,20 @@ class spi_slave_monitor extends uvm_monitor;
 
     `uvm_component_utils(spi_slave_monitor)
 
-    function new(string name = "spi_slave_monitor", uvm_component parent = null);
+    function new(string name = "spi_slave_monitor",
+                 uvm_component parent = null);
         super.new(name, parent);
         item_ap = new("item_ap", this);
     endfunction
 
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
-        if (!uvm_config_db#(virtual spi_slave_if)::get(this, "", "vif", vif)) begin
-            `uvm_fatal("SPI_SLV_MON",
-                       "virtual interface was not provided to spi_slave_monitor")
+        if (!uvm_config_db#(virtual spi_slave_if)::get(
+                this, "", "vif", vif
+            )) begin
+            `uvm_fatal(
+                "SPI_SLV_MON",
+                "virtual interface was not provided to spi_slave_monitor")
         end
     endfunction
 
@@ -187,7 +191,7 @@ class spi_slave_monitor extends uvm_monitor;
             end
 
             sample_tx_data = vif.tx_data;
-            captured_miso  = '0;
+            captured_miso = '0;
             sample_half_period = 0;
 
             @(posedge vif.sclk);
@@ -221,15 +225,16 @@ class spi_slave_monitor extends uvm_monitor;
             end
 
             if (vif.valid !== 1'b1) begin
-                `uvm_fatal("SPI_SLV_MON_TIMEOUT",
-                           "Timed out waiting for valid after slave transaction")
+                `uvm_fatal(
+                    "SPI_SLV_MON_TIMEOUT",
+                    "Timed out waiting for valid after slave transaction")
             end
 
-            tr                 = spi_slave_seq_item::type_id::create("mon_tr");
-            tr.tx_data         = sample_tx_data;
+            tr = spi_slave_seq_item::type_id::create("mon_tr");
+            tr.tx_data = sample_tx_data;
             tr.half_period_cycles = sample_half_period;
-            tr.captured_miso   = captured_miso;
-            tr.rx_data         = vif.rx_data;
+            tr.captured_miso = captured_miso;
+            tr.rx_data = vif.rx_data;
             item_ap.write(tr);
 
             `uvm_info("SPI_SLV_MON", $sformatf(
@@ -252,7 +257,8 @@ class spi_slave_scoreboard extends uvm_scoreboard;
 
     `uvm_component_utils(spi_slave_scoreboard)
 
-    function new(string name = "spi_slave_scoreboard", uvm_component parent = null);
+    function new(string name = "spi_slave_scoreboard",
+                 uvm_component parent = null);
         super.new(name, parent);
         mon_fifo = new("mon_fifo", this);
     endfunction
@@ -272,9 +278,7 @@ class spi_slave_scoreboard extends uvm_scoreboard;
                     "SPI_SLV_SCB",
                     $sformatf(
                         "SPI slave mismatch tx=0x%02h captured_miso=0x%02h rx_data=0x%02h",
-                        tr.tx_data,
-                        tr.captured_miso,
-                        tr.rx_data))
+                        tr.tx_data, tr.captured_miso, tr.rx_data))
             end else begin
                 match_count++;
                 `uvm_info("SPI_SLV_SCB", $sformatf(
@@ -291,12 +295,14 @@ class spi_slave_scoreboard extends uvm_scoreboard;
         super.check_phase(phase);
 
         if (txn_count == 0) begin
-            `uvm_error("SPI_SLV_SCB", "No completed SPI slave transactions were observed")
+            `uvm_error("SPI_SLV_SCB",
+                       "No completed SPI slave transactions were observed")
         end
 
         if (mismatch_count != 0) begin
             `uvm_error("SPI_SLV_SCB", $sformatf(
-                       "Detected %0d SPI slave mismatches", mismatch_count))
+                                          "Detected %0d SPI slave mismatches",
+                                          mismatch_count))
         end
     endfunction
 
@@ -318,34 +324,36 @@ endclass
 
 
 class spi_slave_coverage extends uvm_subscriber #(spi_slave_seq_item);
+    `uvm_component_utils(spi_slave_coverage)
+
     bit [7:0] sampled_tx_data;
     int unsigned sampled_half_period;
 
     covergroup spi_slave_cg;
-        option.per_instance = 1;
 
         cp_pattern: coverpoint sampled_tx_data {
-            bins zero  = {8'h00};
-            bins ones  = {8'hFF};
+            bins zero = {8'h00};
+            bins ones = {8'hFF};
             bins alt_a = {8'hAA};
             bins alt_5 = {8'h55};
-            bins others = default;
+            bins low = {[8'h01 : 8'h1F]};
+            bins mid = {[8'h20 : 8'hDF]};
+            bins high = {[8'hE0 : 8'hFE]};
         }
 
         cp_half_period: coverpoint sampled_half_period {
-            bins hp3  = {3};
-            bins hp4  = {4};
-            bins hp5  = {5};
-            bins hp8  = {8};
+            bins hp3 = {3};
+            bins hp4 = {4};
+            bins hp5 = {5};
+            bins hp8 = {8};
             bins hp10 = {10};
         }
 
         cross_pattern_half_period: cross cp_pattern, cp_half_period;
     endgroup
 
-    `uvm_component_utils(spi_slave_coverage)
-
-    function new(string name = "spi_slave_coverage", uvm_component parent = null);
+    function new(string name = "spi_slave_coverage",
+                 uvm_component parent = null);
         super.new(name, parent);
         spi_slave_cg = new();
     endfunction
@@ -360,11 +368,11 @@ class spi_slave_coverage extends uvm_subscriber #(spi_slave_seq_item);
         super.report_phase(phase);
         `uvm_info("SPI_SLV_COV", $sformatf(
                   {
-                      "SPI slave coverage summary:\n",
-                      "  pattern             : %0.2f%%\n",
-                      "  half_period         : %0.2f%%\n",
+                      "=======SPI coverage summary=======\n",
+                      "  pattern               : %0.2f%%\n",
+                      "  half_period           : %0.2f%%\n",
                       "  pattern x half_period : %0.2f%%\n",
-                      "  total               : %0.2f%%"
+                      "  total                 : %0.2f%%"
                   },
                   spi_slave_cg.cp_pattern.get_coverage(),
                   spi_slave_cg.cp_half_period.get_coverage(),
@@ -392,7 +400,7 @@ class spi_slave_agent extends uvm_agent;
 
         if (get_is_active() == UVM_ACTIVE) begin
             sequencer = spi_slave_sequencer::type_id::create("sequencer", this);
-            driver    = spi_slave_driver::type_id::create("driver", this);
+            driver = spi_slave_driver::type_id::create("driver", this);
         end
     endfunction
 
@@ -431,6 +439,15 @@ class spi_slave_env extends uvm_env;
 endclass
 
 
+
+
+//==================================================
+//
+//                    SEQUENCE
+//
+//==================================================
+
+
 class spi_slave_smoke_sequence extends uvm_sequence #(spi_slave_seq_item);
     `uvm_object_utils(spi_slave_smoke_sequence)
 
@@ -448,7 +465,8 @@ class spi_slave_smoke_sequence extends uvm_sequence #(spi_slave_seq_item);
             tr = spi_slave_seq_item::type_id::create($sformatf("tr_%0d", i));
             start_item(tr);
             if (!tr.randomize()) begin
-                `uvm_fatal("SPI_SLV_SEQ", "Failed to randomize spi_slave_seq_item")
+                `uvm_fatal("SPI_SLV_SEQ",
+                           "Failed to randomize spi_slave_seq_item")
             end
             finish_item(tr);
         end
@@ -470,17 +488,24 @@ class spi_slave_aa55_sequence extends spi_slave_smoke_sequence;
         for (int i = 0; i < num_items; i++) begin
             tr = spi_slave_seq_item::type_id::create($sformatf("tr_%0d", i));
             start_item(tr);
-            if (!tr.randomize() with {
-                tx_data == patterns[i % 2];
-            }) begin
-                `uvm_fatal("SPI_SLV_SEQ",
-                           "Failed to randomize spi_slave_seq_item for AA55 sequence")
+            if (!tr.randomize() with {tx_data == patterns[i%2];}) begin
+                `uvm_fatal(
+                    "SPI_SLV_SEQ",
+                    "Failed to randomize spi_slave_seq_item for AA55 sequence")
             end
             finish_item(tr);
         end
     endtask
 endclass
 
+
+
+
+//==================================================
+// 
+//                       TEST
+//
+//==================================================
 
 class spi_slave_test extends uvm_test;
     spi_slave_env env;
@@ -493,8 +518,8 @@ class spi_slave_test extends uvm_test;
 
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
-        uvm_config_db#(uvm_active_passive_enum)::set(this, "env.agent", "is_active",
-                                                     UVM_ACTIVE);
+        uvm_config_db#(uvm_active_passive_enum)::set(this, "env.agent",
+                                                     "is_active", UVM_ACTIVE);
         env = spi_slave_env::type_id::create("env", this);
     endfunction
 
@@ -549,5 +574,10 @@ module tb_uvm_spi_slave_top;
     initial begin
         uvm_config_db#(virtual spi_slave_if)::set(null, "*", "vif", vif);
         run_test("spi_slave_test");
+    end
+
+    initial begin
+        $fsdbDumpfile("novas.fsdb");
+        $fsdbDumpvars(0, tb_uvm_spi_slave_top, "+all");
     end
 endmodule

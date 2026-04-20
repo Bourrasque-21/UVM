@@ -74,7 +74,7 @@ module i2c_slave (
     assign scl_fall = ~scl_sync1 & scl_sync2;
     assign sda_rise = sda_sync1 & ~sda_sync2;
     assign sda_fall = ~sda_sync1 & sda_sync2;
-    assign addr_ok  = (7'h5 == rx_shift_reg[7:1]) ? 1'b1 : 1'b0;
+    assign addr_ok  = (7'h60 == rx_shift_reg[7:1]) ? 1'b1 : 1'b0;
     assign is_read  = rx_shift_reg[0];
 
     always_ff @(posedge clk, posedge rst) begin

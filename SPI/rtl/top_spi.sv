@@ -4,13 +4,14 @@ module top_spi (
     input  logic       clk,
     input  logic       rst,
     input  logic       start,
-    input  logic [7:0] sw,
-    output logic [7:0] led,
-    output logic       v_led
+    input  logic [15:0] sw,
+    output logic [15:0] led
 
 );
 
-    logic w_sclk, w_mosi, w_cs;
+    logic w_sclk, w_mosi, w_miso, w_cs;
+    logic [7:0] master_rx_data;
+    logic [7:0] slave_rx_data;
 
     spi_master U_SPI_MASTER (
         .clk(clk),
@@ -18,19 +19,19 @@ module top_spi (
 
         // Control
         .start  (start),
-        .tx_data(sw),
+        .tx_data(sw[7:0]),
         .clk_div(8'h4),
 
-        .rx_data(),
+        .rx_data(master_rx_data),
         .busy   (),
-        .done   (v_led),
+        .done   (),
 
         .cpol(1'b0),
         .cpha(1'b0),
         // SPI pins
         .sclk(w_sclk),
         .mosi(w_mosi),
-        .miso(),
+        .miso(w_miso),
         .cs_n(w_cs)
     );
 
@@ -38,12 +39,17 @@ module top_spi (
         .clk(clk),
         .rst(rst),
 
-        .rx_data(led),
+        .tx_data(sw[15:8]),
+        .rx_data(slave_rx_data),
         .valid  (),
 
         .sclk(w_sclk),
         .mosi(w_mosi),
+        .miso(w_miso),
         .cs_n(w_cs)
     );
+
+    assign led[7:0]  = slave_rx_data;
+    assign led[15:8] = master_rx_data;
 
 endmodule

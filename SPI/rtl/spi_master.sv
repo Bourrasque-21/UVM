@@ -8,6 +8,7 @@ module spi_master (
     input logic       start,
     input logic [7:0] tx_data,
     input logic [7:0] clk_div,
+    input logic       slave_sel,
 
     output logic [7:0] rx_data,
     output logic       busy,
@@ -21,7 +22,7 @@ module spi_master (
     output logic sclk,
     output logic mosi,
     input  logic miso,
-    output logic cs_n
+    output logic [1:0] cs_n
 );
 
     typedef enum logic [1:0] {
@@ -68,7 +69,7 @@ module spi_master (
             busy         <= 1'b0;
             done         <= 1'b0;
             mosi         <= 1'b1;
-            cs_n         <= 1'b1;
+            cs_n         <= 2'b11;
             tx_shift_reg <= 8'h0;
             rx_shift_reg <= 8'h0;
             bit_cnt      <= 3'd0;
@@ -79,13 +80,13 @@ module spi_master (
             case (state)
                 IDLE: begin
                     mosi   <= 1'b1;
-                    cs_n   <= 1'b1;
+                    cs_n   <= 2'b11;
                     sclk_r <= cpol;
                     if (start) begin
                         tx_shift_reg <= tx_data;
                         bit_cnt      <= 3'd0;
                         busy         <= 1'b1;
-                        cs_n         <= 1'b0;
+                        cs_n[slave_sel] <= 1'b0;
                         step         <= 1'b0;
                         state        <= START;
                     end
@@ -140,7 +141,7 @@ module spi_master (
                 STOP: begin
                     busy   <= 1'b0;
                     done   <= 1'b1;
-                    cs_n   <= 1'b1;
+                    cs_n   <= 2'b11;
                     mosi   <= 1'b1;
                     sclk_r <= cpol;
                     state  <= IDLE;

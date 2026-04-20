@@ -353,7 +353,9 @@ class spi_coverage extends uvm_subscriber #(spi_seq_item);
             bins ones = {8'hFF};
             bins alt_a = {8'hAA};
             bins alt_5 = {8'h55};
-            bins others = default;
+            bins low = {[8'h01 : 8'h1F]};
+            bins mid = {[8'h20 : 8'hDF]};
+            bins high = {[8'hE0 : 8'hFE]};
         }
 
         cross_mode_clk_div: cross cp_mode, cp_clk_div;
@@ -378,7 +380,7 @@ class spi_coverage extends uvm_subscriber #(spi_seq_item);
         super.report_phase(phase);
         `uvm_info("SPI_COV", $sformatf(
                   {
-                      "SPI coverage summary:\n",
+                      "\n======SPI coverage summary=====\n",
                       "  mode              : %0.2f%%\n",
                       "  clk_div           : %0.2f%%\n",
                       "  pattern           : %0.2f%%\n",
@@ -598,6 +600,11 @@ module tb_uvm_spi_master_top;
     initial begin
         uvm_config_db#(virtual spi_if)::set(null, "*", "vif", vif);
         run_test("spi_test");
+    end
+
+    initial begin
+        $fsdbDumpfile("novas.fsdb");
+        $fsdbDumpvars(0, tb_uvm_spi_master_top, "+all");
     end
 endmodule
 

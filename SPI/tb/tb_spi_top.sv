@@ -2,55 +2,63 @@
 
 module tb_spi_top ();
 
-    logic clk, rst, start, v_led;
-    // logic cpol, cpha;
-    logic [7:0] sw, led;
+    logic        clk;
+    logic        rst;
+    logic        start;
+    logic [15:0] sw;
+    logic [15:0] led;
 
     top_spi dut (.*);
 
     always #5 clk = ~clk;
-    /*
-    task spi_set_mode(logic [1:0] mode);
-        {cpol, cpha} = mode;
-        @(posedge clk);
-    endtask  //spi_set_mode
-*/
-    task spi_send_data(logic [7:0] data);
-        sw = data;
-        start = 1'b1;
-        @(posedge clk);
-        start = 1'b0;
-        @(posedge clk);
-        wait (v_led);
-        @(posedge clk);
-    endtask  //spi_send
 
+    task automatic spi_send_data(
+        input logic [7:0] master_data,
+        input logic [7:0] slave_data
+    );
+        begin
+            sw[7:0]  = master_data;
+            sw[15:8] = slave_data;
+            @(posedge clk);
+            start = 1'b1;
+            @(posedge clk);
+            start = 1'b0;
+
+            wait (dut.U_SPI_MASTER.done == 1'b1);
+            @(posedge clk);
+
+            if (led[7:0] !== master_data) begin
+                $error("Lower LEDs mismatch. expected=%02h actual=%02h", master_data, led[7:0]);
+            end
+
+            if (led[15:8] !== slave_data) begin
+                $error("Upper LEDs mismatch. expected=%02h actual=%02h", slave_data, led[15:8]);
+            end
+        end
+    endtask
 
     initial begin
-        clk = 0;
-        rst = 1;
-        sw  = 8'h0;
+        clk   = 1'b0;
+        rst   = 1'b1;
+        start = 1'b0;
+        sw    = 16'h0000;
+
         repeat (3) @(posedge clk);
-        rst = 0;
-        @(posedge clk);
-        // clk_div = 4;  // sclk = 10MHz : (100MHz / (10MHz * 2)) - 1
-        //miso = 1'b0;
+        rst = 1'b0;
         @(posedge clk);
 
-        // spi_set_mode(0);
-        spi_send_data(8'haa);
+        sw = 16'h3CAA;
+        repeat (5) @(posedge clk);
+        if (led !== 16'h0000) begin
+            $error("LEDs changed before start. expected=0000 actual=%04h", led);
+        end
 
-        // spi_set_mode(1);
-        spi_send_data(8'h55);
+        spi_send_data(8'haa, 8'h3c);
+        spi_send_data(8'h55, 8'hc3);
 
-        // spi_set_mode(2);
-        spi_send_data(8'haa);
-
-        // spi_set_mode(3);
-        spi_send_data(8'h55);
-
-        @(posedge clk);
+        $display("top_spi LED mapping test passed");
         #20;
-        $stop;
+        $finish;
     end
+
 endmodule

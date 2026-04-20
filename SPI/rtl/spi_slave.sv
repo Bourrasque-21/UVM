@@ -8,10 +8,10 @@ module spi_slave (
     output logic [7:0] rx_data,
     output logic       valid,
 
-    input logic sclk,
-    input logic mosi,
+    input  logic sclk,
+    input  logic mosi,
     output logic miso,
-    input logic cs_n
+    input  logic cs_n
 );
 
     logic [7:0] tx_shift_reg;
